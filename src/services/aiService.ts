@@ -2,38 +2,37 @@
 //  Gọi AI để viết prompt giúp người dùng.
 //
 //  ⚠️ KHÔNG gọi thẳng Anthropic API từ trình duyệt (lộ API key).
-//  Frontend gọi 1 endpoint backend do IT viết; backend giữ key và
-//  gọi Anthropic hộ.
+//  Frontend gọi endpoint backend (Vercel serverless function
+//  /api/suggest-prompt); backend giữ key và gọi Anthropic hộ.
 //
-//  TODO: API - POST {VITE_AI_API_URL} (mặc định /api/ai/suggest-prompt)
-//        Body:  { idea: string }
-//        Trả:   { prompt: string }
+//  Backend: api/suggest-prompt.ts
+//        POST { idea: string }  ->  { prompt: string }
+//
+//  Khi chạy `vite dev` ở máy (chưa có serverless function) endpoint
+//  sẽ 404 -> tự động fallback sang prompt mẫu để xem luồng UI.
 // ============================================================
 
-const AI_API_URL = import.meta.env.VITE_AI_API_URL ?? '/api/ai/suggest-prompt';
-
-/** Có backend AI thật hay chưa (để UI biết dùng mock hay gọi API) */
-export const isAiApiConfigured = Boolean(import.meta.env.VITE_AI_API_URL);
+const AI_API_URL = import.meta.env.VITE_AI_API_URL ?? '/api/suggest-prompt';
 
 export async function suggestPrompt(idea: string): Promise<string> {
-  // Nếu chưa cấu hình endpoint -> trả prompt mẫu để xem luồng UI.
-  if (!isAiApiConfigured) {
-    await new Promise((r) => setTimeout(r, 700)); // giả lập "đang nghĩ..."
+  try {
+    const res = await fetch(AI_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idea }),
+    });
+    if (!res.ok) throw new Error(`AI request failed: ${res.status}`);
+    const data = (await res.json()) as { prompt: string };
+    if (!data.prompt) throw new Error('Empty prompt');
+    return data.prompt;
+  } catch {
+    // Không gọi được backend (vd chạy local chưa có function) -> prompt mẫu.
+    await new Promise((r) => setTimeout(r, 400));
     return mockSuggest(idea);
   }
-
-  // TODO: API - backend nhận { idea } và trả { prompt }
-  const res = await fetch(AI_API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ idea }),
-  });
-  if (!res.ok) throw new Error('AI request failed');
-  const data = (await res.json()) as { prompt: string };
-  return data.prompt;
 }
 
-/** Prompt giả lập khi chưa có backend — chỉ để demo giao diện. */
+/** Prompt giả lập khi chưa gọi được backend — chỉ để demo giao diện. */
 function mockSuggest(idea: string): string {
   return `Bạn là chuyên gia sáng tạo nội dung của NhiLe Holdings.
 
@@ -46,5 +45,5 @@ Yêu cầu:
 
 Đầu ra: nội dung hoàn chỉnh, sẵn sàng dùng, không giải thích thêm.
 
-(Đây là prompt mẫu do chế độ demo tạo ra — nối backend AI thật để nhận kết quả chất lượng hơn.)`;
+(Đây là prompt mẫu do chế độ demo tạo ra — đang chạy ở máy local hoặc chưa cấu hình ANTHROPIC_API_KEY trên Vercel.)`;
 }
