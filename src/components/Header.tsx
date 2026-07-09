@@ -1,9 +1,10 @@
 interface HeaderProps {
   onHowTo: () => void;
+  onAiHelp: () => void;
   onAdd: () => void;
 }
 
-export function Header({ onHowTo, onAdd }: HeaderProps) {
+export function Header({ onHowTo, onAiHelp, onAdd }: HeaderProps) {
   return (
     <header className="top">
       <div className="brand">
@@ -14,6 +15,9 @@ export function Header({ onHowTo, onAdd }: HeaderProps) {
       <div className="top-actions">
         <button className="btn-ghost" onClick={onHowTo}>
           Cách dùng
+        </button>
+        <button className="btn-ghost" onClick={onAiHelp}>
+          ✨ Nhờ AI viết giúp
         </button>
         <button className="btn-primary" onClick={onAdd}>
           ＋ Thêm prompt

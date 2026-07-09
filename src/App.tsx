@@ -14,11 +14,11 @@ import { Sidebar } from '@/components/Sidebar';
 import { ExplainBanner } from '@/components/ExplainBanner';
 import { SearchBar } from '@/components/SearchBar';
 import { PromptGrid } from '@/components/PromptGrid';
-import { AiHelperCard } from '@/components/AiHelperCard';
 import { Toast } from '@/components/Toast';
 import { PromptFormModal } from '@/components/modals/PromptFormModal';
 import { PromptDetailModal } from '@/components/modals/PromptDetailModal';
 import { IntroModal } from '@/components/modals/IntroModal';
+import { AiHelperModal } from '@/components/modals/AiHelperModal';
 
 const SEEN_INTRO_KEY = 'nedit_seen_intro';
 const HID_EXPLAIN_KEY = 'nedit_hid_explain';
@@ -46,6 +46,7 @@ export default function App() {
   const [editing, setEditing] = useState<Prompt | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [introOpen, setIntroOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
   const [showBanner, setShowBanner] = useState(true);
 
   // Lần đầu vào: hiện onboarding + kiểm tra banner giải thích
@@ -116,6 +117,7 @@ export default function App() {
 
   function handleAiSave(input: PromptInput) {
     createMut.mutate(input, { onSuccess: () => showToast('Đã lưu prompt vào kho.') });
+    setAiOpen(false);
   }
 
   function closeBanner() {
@@ -130,7 +132,11 @@ export default function App() {
 
   return (
     <>
-      <Header onHowTo={() => setIntroOpen(true)} onAdd={openAdd} />
+      <Header
+        onHowTo={() => setIntroOpen(true)}
+        onAiHelp={() => setAiOpen(true)}
+        onAdd={openAdd}
+      />
 
       <div className="layout">
         <Sidebar
@@ -162,8 +168,6 @@ export default function App() {
             onAdd={openAdd}
             onClearFilters={clearFilters}
           />
-
-          <AiHelperCard onCopy={copyText} onSave={handleAiSave} onError={showToast} />
         </main>
       </div>
 
@@ -187,6 +191,14 @@ export default function App() {
       />
 
       <IntroModal open={introOpen} onClose={closeIntro} />
+
+      <AiHelperModal
+        open={aiOpen}
+        onClose={() => setAiOpen(false)}
+        onCopy={copyText}
+        onSave={handleAiSave}
+        onError={showToast}
+      />
 
       <Toast message={toastMsg} />
     </>

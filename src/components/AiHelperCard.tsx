@@ -45,7 +45,7 @@ export function AiHelperCard({ onCopy, onSave, onError }: AiHelperCardProps) {
   }
 
   return (
-    <div className="ai-card" style={{ marginTop: 36, marginBottom: 0 }}>
+    <div className="ai-card" style={{ margin: 0 }}>
       <div className="ai-card-head">
         <svg viewBox="0 0 24 24" fill="none">
           <path
